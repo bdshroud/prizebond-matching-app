@@ -175,6 +175,13 @@ Your privacy is the core founding principle of PrizeBond Matching App:
 
 ---
 
+## 🏗️ Architecture & Development Guide
+
+For an in-depth breakdown of the entire application making process, architectural decisions, database schema, and build pipeline, see:
+👉 **[DEVELOPMENT.md](DEVELOPMENT.md)**
+
+---
+
 ## 🤝 Contributing
 
 Contributions from developers, designers, and testers are warmly welcomed! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
