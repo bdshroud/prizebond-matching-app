@@ -1,25 +1,64 @@
 {
   "name": "prizebond-matching-app",
+  "productName": "PrizeBond Matching App",
   "version": "1.0.0",
-  "private": true,
-
+  "description": "Smart Offline Bangladesh Prize Bond Verification System",
+  "author": "PrizeBond Community",
+  "license": "MIT",
   "main": "electron/main.js",
-
   "scripts": {
-    "dev": "vite",
+    "dev": "cross-env NODE_ENV=development concurrently -k \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on tcp:5173 && electron . --dev",
     "build": "vite build",
-    "electron": "electron ."
+    "postinstall": "node scripts/patch-7za.js",
+    "start": "electron .",
+    "package": "npm run build && electron-builder --win",
+    "package:dir": "npm run build && electron-builder --win --dir"
   },
-
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "sqlite3": "^6.0.1"
+    "lucide-vue-next": "^0.475.0",
+    "pinia": "^3.0.1",
+    "sql.js": "^1.12.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
-
   "devDependencies": {
-    "autoprefixer": "^10.5.0",
-    "electron": "^42.3.0",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.1"
+    "@tailwindcss/vite": "^4.0.9",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "tailwindcss": "^4.0.9",
+    "vite": "^6.2.0",
+    "wait-on": "^8.0.2"
+  },
+  "build": {
+    "appId": "com.prizebond.matchingapp",
+    "productName": "PrizeBond Matching App",
+    "directories": {
+      "output": "dist-release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "sign": null,
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PrizeBond Matching App"
+    }
   }
 }
