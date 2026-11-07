@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PrizeBond Matching App</string>
+    <string name="title_activity_main">PrizeBond Matching App</string>
+    <string name="package_name">com.prizebond.matchingapp</string>
+    <string name="custom_url_scheme">com.prizebond.matchingapp</string>
+</resources>

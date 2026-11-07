@@ -44,7 +44,7 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    if (isDev) {
+    if (isDevMode) {
       // Optional: mainWindow.webContents.openDevTools();
     }
   });

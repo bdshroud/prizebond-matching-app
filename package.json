@@ -14,7 +14,10 @@
     "postinstall": "node scripts/patch-7za.js",
     "start": "electron .",
     "package": "npm run build && electron-builder --win",
-    "package:dir": "npm run build && electron-builder --win --dir"
+    "package:dir": "npm run build && electron-builder --win --dir",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "build:android": "npm run build && npx cap sync android"
   },
   "dependencies": {
     "lucide-vue-next": "^0.475.0",
@@ -24,6 +27,9 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@tailwindcss/vite": "^4.0.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "concurrently": "^9.1.2",
@@ -55,6 +61,8 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,

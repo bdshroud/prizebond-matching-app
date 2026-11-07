@@ -8,6 +8,7 @@ export const useAppStore = defineStore('app', () => {
   const appVersion = ref('1.0.0');
   const userDataPath = ref('');
   const toast = ref(null);
+  const isMobileMenuOpen = ref(false);
 
   // Initialize preferences from settings
   async function init() {
@@ -23,9 +24,17 @@ export const useAppStore = defineStore('app', () => {
         userDataPath.value = await window.electronAPI.getUserDataPath();
       }
     } catch (e) {
-      console.warn('Failed to load electron preferences:', e);
+      console.warn('Failed to load preferences:', e);
     }
     applyTheme();
+  }
+
+  function toggleMobileMenu() {
+    isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  }
+
+  function closeMobileMenu() {
+    isMobileMenuOpen.value = false;
   }
 
   function setLanguage(newLang) {
@@ -120,6 +129,9 @@ export const useAppStore = defineStore('app', () => {
     appVersion,
     userDataPath,
     toast,
+    isMobileMenuOpen,
+    toggleMobileMenu,
+    closeMobileMenu,
     init,
     setLanguage,
     setTheme,
