@@ -24,6 +24,9 @@ dist/
 dist-electron/
 release/
 out/
+.next/
+backend/dist/
+*.tsbuildinfo
 
 # Local env files
 .env
