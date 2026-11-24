@@ -1,9 +1,34 @@
 # Changelog
 
-All notable changes to **PrizeBond Matching App** are documented in this file.
+All notable changes to **Bangladesh Prize Bond Monitoring Platform** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.0.0] - 2026-11-24
+
+### Complete Web Platform Architecture Release 🇧🇩
+
+#### Web Architecture & Monorepo
+- **Modern Monorepo Architecture**: Clean separation into `frontend/` (Next.js 15 App Router) and `backend/` (Node.js, Express, TypeScript, Mongoose).
+- **Zero Desktop Wrappers**: Removed all Electron, SQLite, and local desktop dependencies in favor of a web-native architecture.
+- **Responsive Mobile-First UI**: Dark/Light mode theme toggle, Tailwind CSS, Lucide icons, responsive drawer navigation, and accessible forms.
+
+#### Automated Matching & Official Rules
+- **60-Day Holding Eligibility Rule**: Automatically checks purchase date against draw date to enforce statutory Bangladesh Bank 60-day rule.
+- **Section 55 Withholding Tax**: Computes mandatory 20% source tax deduction across all prize tiers (1st to 5th prize).
+- **2-Year Claim Expiration**: Computes remaining days until 730-day statutory claim deadline.
+- **Compound Database Constraint**: Unique index on `{ draw: 1, user: 1, bond: 1, prizeCategory: 1 }` guarantees idempotent matching and prevents duplicate notifications.
+
+#### Core Modules
+- **Authentication & Security**: User registration, login, logout, password recovery, email verification, and JWT session handling with bcrypt password hashing.
+- **My Prize Bonds**: 7-digit string format preserving leading zeros, single add, multi-line bulk paste, CSV import/export, and tenant data isolation.
+- **Instant Public Checker**: Check single or bulk bond numbers instantly against all published draws without requiring registration.
+- **Background Cron Worker**: Node-cron hourly runner for automated draw matching and safe email retry dispatch.
+- **Transactional Email Service**: Resend API integration with HTML winner templates and retry tracking.
+- **Admin Control Center**: Official draw management, winning numbers bulk entry, publication & verification, manual matching execution, user role management, email logs, and audit trail.
 
 ---
 

@@ -1,39 +1,65 @@
-# Contributing to PrizeBond Matching App 🇧🇩
+# Contributing to Bangladesh Prize Bond Platform
 
-Thank you for your interest in contributing to PrizeBond Matching App! We welcome contributions from developers, designers, translators, and Bangladesh Prize Bond enthusiasts.
+Thank you for your interest in contributing to the Bangladesh Prize Bond Monitoring & Automated Winner Notification Web Platform!
 
-## Code of Conduct
+---
 
-Please read and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) in all project interactions.
+## 🛠️ Monorepo Structure
 
-## How Can I Contribute?
+- `frontend/`: Next.js 15 App Router, React 19, TypeScript, Tailwind CSS, TanStack Query.
+- `backend/`: Node.js, Express.js, TypeScript, Mongoose (MongoDB).
+- `docs/`: Technical architecture, API reference, and deployment documentation.
 
-### Reporting Bugs
-- Check the issue tracker before creating a new issue.
-- Clearly describe the bug, your environment (Windows version, Node.js version), and steps to reproduce.
+---
 
-### Suggesting Enhancements
-- Feature requests should explain the motivation and proposed solution.
-- Keep the offline and privacy-first focus of the application in mind.
+## 📋 Development Setup
 
-### Pull Requests
-1. Fork the repo and create your branch from `main`:
+1. **Prerequisites**: Node.js `v20+` or `v22+` and a running instance of MongoDB.
+2. **Install all dependencies**:
    ```bash
-   git checkout -b feature/amazing-feature
+   npm run install:backend
+   npm run install:frontend
    ```
-2. Make your changes and test thoroughly:
+3. **Environment Setup**:
    ```bash
-   npm.cmd run build
+   cp .env.example backend/.env
+   cp frontend/.env.example frontend/.env.local
    ```
-3. Commit your changes with meaningful messages:
+4. **Run Development Server**:
    ```bash
-   git commit -m 'feat: Add support for quarterly reminder notifications'
+   npm run dev
    ```
-4. Push to your branch and open a Pull Request.
 
-## Coding Guidelines
+---
 
-- Use clean, modern Vue 3 Composition API (`<script setup>`).
-- Respect Tailwind CSS v4 conventions.
-- Maintain Electron security practices (contextIsolation, no direct nodeIntegration in renderer).
-- Ensure SQLite queries preserve leading zeros for bond numbers.
+## 🧪 Testing & Code Quality
+
+Before opening a pull request, ensure all tests pass and production builds succeed:
+
+1. **Run Backend Tests**:
+   ```bash
+   npm run test:backend
+   ```
+2. **Build Backend**:
+   ```bash
+   npm run build:backend
+   ```
+3. **Build Frontend**:
+   ```bash
+   npm run build:frontend
+   ```
+
+---
+
+## 🔒 Security Guidelines
+
+- Never commit secrets, passwords, or MongoDB connection URIs.
+- All user bond numbers must remain isolated strictly to their owner's MongoDB ID.
+- Preserve 7-digit bond number representations as strings (`^[0-9]{7}$`) with leading zeros intact.
+- Enforce the 60-day purchase holding eligibility rule and 20% source tax calculations on any matching engine changes.
+
+---
+
+## 📄 License
+
+By contributing, you agree that your contributions will be licensed under the project's [MIT License](LICENSE).
