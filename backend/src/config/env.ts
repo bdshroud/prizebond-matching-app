@@ -14,5 +14,13 @@ export const ENV = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
   ADMIN_NAME: process.env.ADMIN_NAME || 'Platform Administrator',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@prizebond.gov.bd',
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'AdminSecurePass2025!'
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'AdminSecurePass2025!',
+  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || process.env.JWT_SECRET || 'prizebond_better_auth_dev_secret_at_least_32_chars_long',
+  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || 'http://localhost:5000',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID || '',
+  FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET || '',
+  TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID || '',
+  TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET || ''
 };

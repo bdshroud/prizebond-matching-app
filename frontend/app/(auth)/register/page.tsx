@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
 import { Sparkles, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import SocialAuthButtons from '../../../components/auth/SocialAuthButtons';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -64,6 +65,10 @@ export default function RegisterPage() {
               <span>{error}</span>
             </div>
           )}
+
+          <div className="mb-6">
+            <SocialAuthButtons callbackURL="/dashboard" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

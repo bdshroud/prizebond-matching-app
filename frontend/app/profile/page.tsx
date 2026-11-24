@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { api } from '@/services/api';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/lib/utils';
+import { authClient, SocialProvider } from '@/lib/auth-client';
+import { GoogleIcon, FacebookIcon, XIcon } from '@/components/auth/SocialAuthButtons';
 import {
   User,
   Mail,
@@ -15,7 +17,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Save,
-  Clock
+  Clock,
+  Link2,
+  Unlink,
+  Loader2
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -38,14 +43,83 @@ export default function ProfilePage() {
   const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
   const [passwordErrorMsg, setPasswordErrorMsg] = useState('');
 
+  // Social account linking state
+  const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
+  const [linkingProvider, setLinkingProvider] = useState<SocialProvider | null>(null);
+  const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
+  const [socialSuccessMsg, setSocialSuccessMsg] = useState('');
+  const [socialErrorMsg, setSocialErrorMsg] = useState('');
+
+  const fetchLinkedAccounts = async () => {
+    try {
+      const res = await authClient.listAccounts();
+      if (res?.data && Array.isArray(res.data)) {
+        setLinkedAccounts(res.data);
+      }
+    } catch {
+      // Ignore if listAccounts is pending
+    }
+  };
+
+  const isProviderLinked = (provider: string) =>
+    linkedAccounts.some((acc: any) => acc.providerId === provider);
+
+  const getProviderAccount = (provider: string) =>
+    linkedAccounts.find((acc: any) => acc.providerId === provider);
+
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setPhone(user.phone || '');
       setEmailOnWin(user.notificationPreferences?.emailOnWin ?? true);
       setEmailOnNewDraw(user.notificationPreferences?.emailOnNewDraw ?? true);
+      fetchLinkedAccounts();
     }
   }, [user]);
+
+  const handleLinkSocial = async (provider: SocialProvider) => {
+    if (linkingProvider) return;
+    setSocialSuccessMsg('');
+    setSocialErrorMsg('');
+    setLinkingProvider(provider);
+
+    try {
+      const res = await authClient.linkSocial({
+        provider,
+        callbackURL: '/profile'
+      });
+      if (res?.error) {
+        setSocialErrorMsg(res.error.message || `Failed to link ${provider} account.`);
+        setLinkingProvider(null);
+      }
+    } catch (err: any) {
+      setSocialErrorMsg(err?.message || `Failed to connect ${provider}. Please try again.`);
+      setLinkingProvider(null);
+    }
+  };
+
+  const handleUnlinkSocial = async (providerId: string) => {
+    if (unlinkingProvider) return;
+    setSocialSuccessMsg('');
+    setSocialErrorMsg('');
+    setUnlinkingProvider(providerId);
+
+    try {
+      const account = getProviderAccount(providerId);
+      const accountId = account?.accountId || account?.id || providerId;
+      const res = await authClient.unlinkAccount({ accountId });
+      if (res?.error) {
+        setSocialErrorMsg(res.error.message || `Failed to disconnect ${providerId}.`);
+      } else {
+        setSocialSuccessMsg(`${providerId} account disconnected successfully.`);
+        await fetchLinkedAccounts();
+      }
+    } catch (err: any) {
+      setSocialErrorMsg(err?.message || `Failed to unlink ${providerId}.`);
+    } finally {
+      setUnlinkingProvider(null);
+    }
+  };
 
   if (authLoading) {
     return (
@@ -301,6 +375,208 @@ export default function ProfilePage() {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* Connected Social Accounts Card */}
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 space-y-6 shadow-sm">
+            <div className="flex items-center gap-2 text-foreground font-bold text-base pb-3 border-b border-border">
+              <Link2 className="w-5 h-5 text-emerald-500" />
+              <span>Connected Social Accounts</span>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Connect your social accounts to log in with Google, Facebook, or X with a single click. Unlinking requires an active password or another linked provider.
+            </p>
+
+            {socialSuccessMsg && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{socialSuccessMsg}</span>
+              </div>
+            )}
+
+            {socialErrorMsg && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{socialErrorMsg}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {/* Google */}
+              <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-muted/40 border border-border flex items-center justify-center">
+                    <GoogleIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Google</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {isProviderLinked('google')
+                        ? 'Connected for one-click authentication'
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  {isProviderLinked('google') ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Connected
+                      </span>
+                      <button
+                        type="button"
+                        disabled={unlinkingProvider === 'google'}
+                        onClick={() => handleUnlinkSocial('google')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                        title="Disconnect Google account"
+                      >
+                        {unlinkingProvider === 'google' ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Unlink className="w-3.5 h-3.5" />
+                        )}
+                        <span>Disconnect</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={linkingProvider !== null}
+                      onClick={() => handleLinkSocial('google')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-card hover:bg-muted/50 border border-border text-foreground rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {linkingProvider === 'google' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Connecting...</span>
+                        </>
+                      ) : (
+                        <span>Connect</span>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Facebook */}
+              <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-muted/40 border border-border flex items-center justify-center">
+                    <FacebookIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Facebook</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {isProviderLinked('facebook')
+                        ? 'Connected for one-click authentication'
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  {isProviderLinked('facebook') ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Connected
+                      </span>
+                      <button
+                        type="button"
+                        disabled={unlinkingProvider === 'facebook'}
+                        onClick={() => handleUnlinkSocial('facebook')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                        title="Disconnect Facebook account"
+                      >
+                        {unlinkingProvider === 'facebook' ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Unlink className="w-3.5 h-3.5" />
+                        )}
+                        <span>Disconnect</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={linkingProvider !== null}
+                      onClick={() => handleLinkSocial('facebook')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-card hover:bg-muted/50 border border-border text-foreground rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {linkingProvider === 'facebook' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Connecting...</span>
+                        </>
+                      ) : (
+                        <span>Connect</span>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* X / Twitter */}
+              <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-muted/40 border border-border flex items-center justify-center">
+                    <XIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">X (formerly Twitter)</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {isProviderLinked('twitter')
+                        ? 'Connected for one-click authentication'
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  {isProviderLinked('twitter') ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Connected
+                      </span>
+                      <button
+                        type="button"
+                        disabled={unlinkingProvider === 'twitter'}
+                        onClick={() => handleUnlinkSocial('twitter')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                        title="Disconnect X account"
+                      >
+                        {unlinkingProvider === 'twitter' ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Unlink className="w-3.5 h-3.5" />
+                        )}
+                        <span>Disconnect</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={linkingProvider !== null}
+                      onClick={() => handleLinkSocial('twitter')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-card hover:bg-muted/50 border border-border text-foreground rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {linkingProvider === 'twitter' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Connecting...</span>
+                        </>
+                      ) : (
+                        <span>Connect</span>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Change Password Card */}

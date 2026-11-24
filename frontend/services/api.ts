@@ -39,6 +39,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   const url = `${API_BASE}${endpoint}`;
   const response = await fetch(url, {
+    credentials: 'include',
     ...options,
     headers
   });

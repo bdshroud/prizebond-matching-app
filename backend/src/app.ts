@@ -2,6 +2,8 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './config/auth.js';
 import routes from './routes/index.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -27,6 +29,27 @@ export function createApp(): Express {
   if (ENV.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
   }
+
+  // Mount Better Auth handler before express.json()
+  const betterAuthHandler = toNodeHandler(auth);
+  const customAuthEndpoints = [
+    '/api/auth/register',
+    '/api/auth/login',
+    '/api/auth/me',
+    '/api/auth/profile',
+    '/api/auth/change-password',
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password',
+    '/api/auth/verify-email'
+  ];
+
+  app.use('/api/auth', (req, res, next) => {
+    const rawPath = req.originalUrl.split('?')[0];
+    if (customAuthEndpoints.includes(rawPath)) {
+      return next();
+    }
+    return betterAuthHandler(req, res);
+  });
 
   // Body Parsing
   app.use(express.json({ limit: '10mb' }));

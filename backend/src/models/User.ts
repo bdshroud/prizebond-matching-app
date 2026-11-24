@@ -11,7 +11,8 @@ export interface INotificationPreferences {
 export interface IUser extends Document {
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
+  image?: string;
   role: Role;
   isEmailVerified: boolean;
   verificationToken?: string | null;
@@ -44,8 +45,12 @@ const UserSchema = new Schema<IUser>(
     },
     passwordHash: {
       type: String,
-      required: [true, 'Password hash is required'],
+      required: false,
       select: false
+    },
+    image: {
+      type: String,
+      default: null
     },
     role: {
       type: String,
@@ -94,6 +99,7 @@ const UserSchema = new Schema<IUser>(
 
 // Method to verify candidate password
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  if (!this.passwordHash) return false;
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
 

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { IUser } from '../types';
 import { api, getStoredToken, setStoredToken } from '../services/api';
+import { authClient } from '../lib/auth-client';
 
 interface AuthContextType {
   user: IUser | null;
@@ -13,7 +14,7 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (credentials: any) => Promise<void>;
   register: (data: any) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -25,19 +26,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = async () => {
-    const currentToken = getStoredToken();
-    if (!currentToken) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      setToken(currentToken);
-      const profile = await api.auth.getMe();
-      setUser(profile);
+      const currentToken = getStoredToken();
+      if (currentToken) {
+        setToken(currentToken);
+        const profile = await api.auth.getMe();
+        setUser(profile);
+        return;
+      }
+
+      // Check Better Auth session for social logins
+      const session = await authClient.getSession();
+      if (session?.data?.user) {
+        try {
+          const profile = await api.auth.getMe();
+          setUser(profile);
+        } catch {
+          setUser({
+            id: session.data.user.id,
+            name: session.data.user.name,
+            email: session.data.user.email,
+            role: 'user',
+            isEmailVerified: session.data.user.emailVerified ?? true,
+            notificationPreferences: {
+              emailOnWin: true,
+              emailOnNewDraw: true,
+              inAppNotifications: true
+            }
+          });
+        }
+      } else {
+        setUser(null);
+      }
     } catch (err) {
-      console.warn('Failed to load user session:', err);
+      console.warn('Session refresh error:', err);
       setStoredToken(null);
       setUser(null);
       setToken(null);
@@ -64,7 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authClient.signOut();
+    } catch {}
     setStoredToken(null);
     setToken(null);
     setUser(null);
